@@ -2,12 +2,13 @@ name: Java CI with Docker Compose
 
 on:
   push:
-    branches: [ "main","code-check", "training", "live" ]
+    branches: [ "main","dev","code-check", "training", "live" ]
   pull_request:
     branches: [ "dev" ]
 
 jobs:
   build:
+    if: contains(fromJson('["refs/heads/dev","refs/heads/training","refs/heads/code-check", "refs/heads/live"]'), github.ref)
     runs-on: ubuntu-latest
 
     steps:
@@ -42,6 +43,7 @@ jobs:
           path: yasi-configuration-service.tar
 
   code-quality-check:
+    if: github.ref == 'refs/heads/code-check'
     runs-on: ubuntu-latest
 
     steps:
