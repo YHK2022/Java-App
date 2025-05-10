@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: yasi-configuration-service-image
-          path: /data/docker-workspace/yasi-configuration-service.tar
+          path: yasi-configuration-service.tar
 
   deploy-training:
     needs: build
@@ -76,8 +76,8 @@ jobs:
           username: ${{ secrets.TRAINING_SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker load -i ~/yasi-configuration-service.tar
-            cd /home/${{ secrets.TRAINING_SERVER_USER }}/compose/yasi
+            docker load -i /data/docker-workspace/yasi-configuration-service.tar
+            cd /data/docker-workspace/compose/yasi
             docker-compose down
             docker-compose up -d --force-recreate
 
