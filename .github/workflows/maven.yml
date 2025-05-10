@@ -19,7 +19,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} "echo Connected"
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.TRAINING_SERVER_IP }} "echo Connected"
 
       # Step 2: Set up Java Development Kit (JDK) version 17
       - name: Set up JDK 17
