@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: yasi-configuration-service-image
-          path: yasi-configuration-service.tar
+          path: /data/docker-workspace/yasi-configuration-service.tar
 
   deploy-training:
     needs: build
@@ -66,7 +66,7 @@ jobs:
           username: ${{ secrets.TRAINING_SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "yasi-configuration-service.tar"
-          target: "/home/${{ secrets.TRAINING_SERVER_USER }}/"
+          target: "/data/docker-workspace/"
 
       # Step 3: SSH into the training server and deploy using Docker Compose
       - name: SSH into training server and deploy with Docker Compose
