@@ -77,7 +77,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             docker load -i /data/docker-workspace/yasi-configuration-service.tar
-            cd /data/docker-workspace/compose/yasi
+            cd /data/docker-workspace/deployment
             docker-compose down
             docker-compose up -d --force-recreate
 
