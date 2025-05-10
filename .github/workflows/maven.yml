@@ -58,6 +58,7 @@ jobs:
           host: ${{ secrets.TRAINING_SERVER_IP }}
           username: ${{ secrets.TRAINING_SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           source: "yasi-configuration-service.tar"
           target: "/home/${{ secrets.TRAINING_SERVER_USER }}/"
 
