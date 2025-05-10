@@ -1,0 +1,109 @@
+name: Java CI with Docker Compose
+
+on:
+  push:
+    branches: [ "main", "training", "live" ]   # Triggers the workflow on push to these branches
+  pull_request:
+    branches: [ "dev" ]                          # Also runs on pull requests targeting the dev branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - uses: actions/checkout@v4
+
+      # Step 2: Set up Java Development Kit (JDK) version 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Step 3: Build the Java project using Maven
+      - name: Build with Maven
+        run: mvn clean package
+
+      # Step 4: Build a Docker image using the Dockerfile in the root directory
+      - name: Build Docker Image
+        run: docker build -t yasi-configuration-service:latest .
+
+      # Step 5: Save the Docker image as a tarball for transfer
+      - name: Save Docker Image to tar
+        run: docker save yasi-configuration-service:latest -o yasi-configuration-service.tar
+
+      # Step 6: Upload the Docker image artifact for use in deployment jobs
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: yasi-configuration-service-image
+          path: yasi-configuration-service.tar
+
+  deploy-training:
+    needs: build
+    if: github.ref == 'refs/heads/training'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download the previously built Docker image
+      - uses: actions/download-artifact@v4
+        with:
+          name: yasi-configuration-service-image
+
+      # Step 2: Copy the Docker image to the training server using SCP
+      - name: Copy Docker image to training server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TRAINING_SERVER_IP }}
+          username: ${{ secrets.TRAINING_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "yasi-configuration-service.tar"
+          target: "/home/${{ secrets.TRAINING_SERVER_USER }}/"
+
+      # Step 3: SSH into the training server and deploy using Docker Compose
+      - name: SSH into training server and deploy with Docker Compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.TRAINING_SERVER_IP }}
+          username: ${{ secrets.TRAINING_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker load -i ~/yasi-configuration-service.tar
+            cd /home/${{ secrets.TRAINING_SERVER_USER }}/compose/yasi
+            docker-compose down
+            docker-compose up -d --force-recreate
+
+  deploy-live:
+    needs: build
+    if: github.ref == 'refs/heads/live'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download the Docker image artifact
+      - uses: actions/download-artifact@v4
+        with:
+          name: yasi-configuration-service-image
+
+      # Step 2: Copy the Docker image to the live server
+      - name: Copy Docker image to live server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.LIVE_SERVER_IP }}
+          username: ${{ secrets.LIVE_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "yasi-configuration-service.tar"
+          target: "/home/${{ secrets.LIVE_SERVER_USER }}/"
+
+      # Step 3: SSH into the live server and deploy using Docker Compose
+      - name: SSH into live server and deploy with Docker Compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIVE_SERVER_IP }}
+          username: ${{ secrets.LIVE_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker load -i ~/yasi-configuration-service.tar
+            cd /home/${{ secrets.LIVE_SERVER_USER }}/compose/yasi
+            docker-compose down
+            docker-compose up -d --force-recreate
