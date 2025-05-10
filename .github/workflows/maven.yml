@@ -12,6 +12,8 @@ jobs:
 
     steps:
       # Step 1: Checkout the code from the repository
+      - name: Checkout code
+        run: echo "Checking out code.. ${{ secrets.SSH_PRIVATE_KEY }}, ${{ secrets.TRAINING_SERVER_IP }}, ${{ secrets.LIVE_SERVER_IP }}"
       - uses: actions/checkout@v4
 
       # Step 2: Set up Java Development Kit (JDK) version 17
@@ -58,7 +60,6 @@ jobs:
           host: ${{ secrets.TRAINING_SERVER_IP }}
           username: ${{ secrets.TRAINING_SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
           source: "yasi-configuration-service.tar"
           target: "/home/${{ secrets.TRAINING_SERVER_USER }}/"
 
