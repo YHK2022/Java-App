@@ -78,8 +78,8 @@ jobs:
           script: |
             docker load -i /data/docker-workspace/yasi-configuration-service.tar
             cd /data/docker-workspace/deployment
-            docker-compose down
-            docker-compose up -d --force-recreate
+            docker compose down
+            docker compose up -d --force-recreate
 
   deploy-live:
     needs: build
