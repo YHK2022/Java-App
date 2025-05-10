@@ -12,9 +12,14 @@ jobs:
 
     steps:
       # Step 1: Checkout the code from the repository
-      - name: Checkout code
-        run: echo "Checking out code.. ${{ secrets.SSH_PRIVATE_KEY }}, ${{ secrets.TRAINING_SERVER_IP }}, ${{ secrets.LIVE_SERVER_IP }}"
       - uses: actions/checkout@v4
+
+      - name: Test SSH connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} "echo Connected"
 
       # Step 2: Set up Java Development Kit (JDK) version 17
       - name: Set up JDK 17
