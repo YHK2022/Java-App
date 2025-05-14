@@ -106,7 +106,7 @@ jobs:
           name: yasi-configuration-service-image
           path: yasi-configuration-service.tar        
   deploy-training:
-    needs: [docker-build]
+    needs: [build, docker-build]
     if: github.ref == 'refs/heads/training'
     runs-on: ubuntu-latest
 
