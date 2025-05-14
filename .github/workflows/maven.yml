@@ -41,7 +41,7 @@ jobs:
           name: spotbugs-html-report
           path: target/spotbugs.html
 
-  maven-build:
+  build:
     needs: [code-quality-check]
     runs-on: ubuntu-latest
 
@@ -65,7 +65,7 @@ jobs:
         run: mvn clean package
 
   docker-build:
-    needs: [maven-build]
+    needs: [build]
     runs-on: ubuntu-latest
 
     steps:
