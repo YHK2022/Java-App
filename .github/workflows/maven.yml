@@ -96,7 +96,7 @@ jobs:
           name: yasi-configuration-service-image
           path: yasi-configuration-service.tar        
   deploy-training:
-    needs: [maven-build,ocker-build,code-quality-check]
+    needs: [build, docker-build, code-quality-check]
     if: github.ref == 'refs/heads/training'
     runs-on: ubuntu-latest
 
