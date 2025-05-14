@@ -43,7 +43,6 @@ jobs:
 
   build:
     needs: [code-quality-check]
-    if: contains(fromJson('["refs/heads/dev","refs/heads/training","refs/heads/code-check", "refs/heads/live"]'), github.ref)
     runs-on: ubuntu-latest
 
     steps:
@@ -64,6 +63,36 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: yasi-jar
+          path: target/*.jar
+
+  docker-build:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test SSH connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.TRAINING_SERVER_IP }} "echo Connected"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Download JAR from Maven build
+        uses: actions/download-artifact@v4
+        with:
+         name: yasi-jar
+         path: target    
 
       - name: Build Docker Image
         run: docker build -t yasi-configuration-service:latest .
@@ -75,10 +104,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: yasi-configuration-service-image
-          path: yasi-configuration-service.tar
+          path: yasi-configuration-service.tar        
   deploy-training:
-    needs: build
-    if: github.ref == 'refs/heads/training'
+    needs: [build, docker-build]
+    if: github.ref_name == 'training'
     runs-on: ubuntu-latest
 
     steps:
@@ -108,8 +137,8 @@ jobs:
             docker compose up -d --force-recreate
 
   deploy-live:
-    needs: build
-    if: github.ref == 'refs/heads/live'
+    needs: [build,docker-build]
+    if: github.ref_name == 'live'
     runs-on: ubuntu-latest
 
     steps:
