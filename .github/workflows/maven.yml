@@ -83,6 +83,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Download JAR from Maven build
+        uses: actions/download-artifact@v4
+        with:
+         name: yasi-jar
+         path: target    
 
       - name: Build Docker Image
         run: docker build -t yasi-configuration-service:latest .
