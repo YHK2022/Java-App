@@ -106,8 +106,8 @@ jobs:
           name: yasi-configuration-service-image
           path: yasi-configuration-service.tar        
   deploy-training:
-    needs: build
-    if: github.ref == 'refs/heads/training'
+    needs: [build, docker-build]
+    if: github.ref_name == 'training'
     runs-on: ubuntu-latest
 
     steps:
@@ -137,8 +137,8 @@ jobs:
             docker compose up -d --force-recreate
 
   deploy-live:
-    needs: [docker-build]
-    if: github.ref == 'refs/heads/live'
+    needs: [build,docker-build]
+    if: github.ref_name == 'live'
     runs-on: ubuntu-latest
 
     steps:
