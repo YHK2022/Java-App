@@ -1,4 +1,4 @@
-name: Java CI with Docker Compose
+name: Java CI Pipeline
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   check_code:
     if: github.ref == 'refs/heads/code-check'
     runs-on: ubuntu-latest
-    name: Check Code Quality
+
     steps:
       - uses: actions/checkout@v4
 
@@ -39,12 +39,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: spotbugs-html-report
-          path: target/site/spotbugs.html
+          path: target/spotbugs.html
 
   maven_build:
-    if: contains(fromJson('["refs/heads/dev","refs/heads/training","refs/heads/code-check", "refs/heads/live"]'), github.ref)
+    if: contains(fromJson('["refs/heads/dev","refs/heads/training","refs/heads/code-check","refs/heads/live"]'), github.ref)
     runs-on: ubuntu-latest
-    name: Maven Build
+
     steps:
       - uses: actions/checkout@v4
 
@@ -57,12 +57,26 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
 
+      - name: Copy JAR to root for Docker build
+        run: cp target/*.jar app.jar
+
+      - name: Upload JAR for reuse
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-jar
+          path: app.jar
+
   docker_build:
     needs: maven_build
     runs-on: ubuntu-latest
-    name: Docker Build and Upload
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download built JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: built-jar
 
       - name: Build Docker Image
         run: docker build -t yasi-configuration-service:latest .
@@ -80,7 +94,7 @@ jobs:
     needs: docker_build
     if: github.ref == 'refs/heads/training'
     runs-on: ubuntu-latest
-    name: Deploy to Training Server
+
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -95,7 +109,7 @@ jobs:
           source: "yasi-configuration-service.tar"
           target: "/data/docker-workspace/"
 
-      - name: SSH and deploy with Docker Compose
+      - name: SSH into training server and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.TRAINING_SERVER_IP }}
@@ -111,7 +125,7 @@ jobs:
     needs: docker_build
     if: github.ref == 'refs/heads/live'
     runs-on: ubuntu-latest
-    name: Deploy to Live Server
+
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -126,7 +140,7 @@ jobs:
           source: "yasi-configuration-service.tar"
           target: "/home/${{ secrets.LIVE_SERVER_USER }}/"
 
-      - name: SSH and deploy with Docker Compose
+      - name: SSH into live server and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.LIVE_SERVER_IP }}
