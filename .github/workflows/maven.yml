@@ -127,7 +127,7 @@ jobs:
             docker compose up -d --force-recreate
 
   deploy-live:
-    needs: [build,code-quality-check]
+    needs: [code-quality-check, build, docker-build]
     if: github.ref == 'refs/heads/live'
     runs-on: ubuntu-latest
 
