@@ -77,7 +77,7 @@ jobs:
           path: yasi-configuration-service.tar
           
   deploy-training:
-    needs: build
+    needs: [build,code-quality-check]
     if: github.ref == 'refs/heads/training'
     runs-on: ubuntu-latest
 
@@ -108,7 +108,7 @@ jobs:
             docker compose up -d --force-recreate
 
   deploy-live:
-    needs: build
+    needs: [build,code-quality-check]
     if: github.ref == 'refs/heads/live'
     runs-on: ubuntu-latest
 
