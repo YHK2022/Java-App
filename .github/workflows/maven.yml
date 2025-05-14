@@ -9,6 +9,7 @@ on:
 jobs:
   code-quality-check:
     if: contains(fromJson('["refs/heads/dev","refs/heads/code-check"]'), github.ref)
+    
     runs-on: ubuntu-latest
 
     steps:
@@ -42,7 +43,8 @@ jobs:
           path: target/spotbugs.html
 
   maven_build:
-    if: contains(fromJson('["refs/heads/dev"]'), github.ref)
+    if: contains(fromJson('["refs/heads/dev","refs/heads/code-check"]'), github.ref)
+
     runs-on: ubuntu-latest
 
     steps:
