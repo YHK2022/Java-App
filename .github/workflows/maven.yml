@@ -42,7 +42,7 @@ jobs:
           path: target/spotbugs.html
 
   build:
-    if: contains(fromJson('["refs/heads/dev","refs/heads/training","refs/heads/code-check", "refs/heads/live"]'), github.ref)
+    needs: [code-quality-check]
     runs-on: ubuntu-latest
 
     steps:
