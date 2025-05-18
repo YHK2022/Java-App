@@ -7,6 +7,40 @@ on:
     branches: [ "dev" ]
 
 jobs:
+  code-quality-check:
+    if: contains(fromJson('["refs/heads/dev","refs/heads/code-check"]'), github.ref)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run code quality tools (Checkstyle, PMD, SpotBugs)
+        run: mvn site
+
+      - name: Upload Checkstyle HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-html-report
+          path: target/site/checkstyle.html
+
+      - name: Upload PMD HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmd-html-report
+          path: target/site/pmd.html
+
+      - name: Upload SpotBugs HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-html-report
+          path: target/spotbugs.html
+
   build:
     if: contains(fromJson('["refs/heads/dev","refs/heads/training","refs/heads/code-check", "refs/heads/live"]'), github.ref)
     runs-on: ubuntu-latest
@@ -41,41 +75,6 @@ jobs:
         with:
           name: yasi-configuration-service-image
           path: yasi-configuration-service.tar
-
-  code-quality-check:
-    if: github.ref == 'refs/heads/code-check'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Run code quality tools (Checkstyle, PMD, SpotBugs)
-        run: mvn site
-
-      - name: Upload Checkstyle HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkstyle-html-report
-          path: target/site/checkstyle.html
-
-      - name: Upload PMD HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: pmd-html-report
-          path: target/site/pmd.html
-
-      - name: Upload SpotBugs HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: spotbugs-html-report
-          path: target/spotbugs.html
-
   deploy-training:
     needs: build
     if: github.ref == 'refs/heads/training'
